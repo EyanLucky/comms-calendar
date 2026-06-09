@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kickoff Championship — Comms Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#090713;--bg2:#0e0b1f;
+    --panel:rgba(255,255,255,0.035);--panel-line:rgba(255,255,255,0.09);
+    --panel-solid:#14112a;--ink:#f3f1fb;--muted:#9a96bd;--faint:#6b6790;
+    --cyan:#19e3ff;--gold:#ffc23c;--purple:#9a7bff;--green:#2be56b;--pink:#ff2d9b;
+    --holo:linear-gradient(90deg,#ff2d9b,#ffc23c,#2be56b,#19e3ff,#9a7bff);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 600px at 80% -10%, rgba(154,123,255,0.16), transparent 60%),
+      radial-gradient(900px 500px at -5% 5%, rgba(255,45,155,0.13), transparent 55%),
+      radial-gradient(700px 500px at 50% 120%, rgba(25,227,255,0.10), transparent 60%),
+      var(--bg);
+    color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.5;min-height:100vh;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 80px}
+
+  .eyebrow{font-family:'Space Mono',monospace;letter-spacing:.34em;text-transform:uppercase;font-size:11px;color:var(--gold);margin:0 0 8px}
+  h1{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(38px,8vw,76px);line-height:.92;letter-spacing:.01em;margin:0;text-transform:uppercase;
+     background:var(--holo);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 2px 18px rgba(154,123,255,.25))}
+  .h1-sub{font-family:'Anton',sans-serif;font-size:clamp(20px,4vw,34px);text-transform:uppercase;letter-spacing:.02em;color:var(--ink);margin:2px 0 0;opacity:.92}
+  .meta{font-family:'Space Mono',monospace;font-size:12.5px;color:var(--muted);margin-top:14px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+  .meta b{color:var(--ink);font-weight:700}
+
+  .progress{margin:20px 0 6px}
+  .progress-track{position:relative;height:8px;border-radius:99px;background:rgba(255,255,255,.07);border:1px solid var(--panel-line)}
+  .progress-fill{position:absolute;inset:0 auto 0 0;height:100%;border-radius:99px;background:var(--holo);background-size:200% 100%;animation:slide 6s linear infinite;min-width:2px}
+  @keyframes slide{to{background-position:200% 0}}
+  .progress-dot{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(255,255,255,.15),0 0 16px rgba(255,255,255,.6)}
+  .progress-labels{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:11px;color:var(--faint);margin-top:8px}
+  .progress-status{color:var(--cyan)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;align-items:center}
+  .legend-hint{font-family:'Space Mono',monospace;font-size:11px;color:var(--faint);margin-right:4px}
+  .chip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px 7px 10px;border-radius:99px;cursor:pointer;background:var(--panel);border:1px solid var(--panel-line);font-size:13px;font-weight:600;color:var(--muted);transition:transform .15s,border-color .15s,color .15s,background .15s;user-select:none}
+  .chip:hover{transform:translateY(-1px);color:var(--ink)}
+  .chip .ic{width:18px;height:18px;display:grid;place-items:center;border-radius:6px}
+  .chip .ic svg{width:13px;height:13px;display:block}
+  .chip[data-ch="email"] .ic{background:rgba(25,227,255,.16);color:var(--cyan)}
+  .chip[data-ch="news"] .ic{background:rgba(255,194,60,.16);color:var(--gold)}
+  .chip[data-ch="discord"] .ic{background:rgba(154,123,255,.18);color:var(--purple)}
+  .chip[data-ch="other"] .ic{background:rgba(43,229,107,.16);color:var(--green)}
+  .chip.active{color:var(--ink);background:rgba(255,255,255,.09)}
+  .chip[data-ch="email"].active{border-color:var(--cyan)}
+  .chip[data-ch="news"].active{border-color:var(--gold)}
+  .chip[data-ch="discord"].active{border-color:var(--purple)}
+  .chip[data-ch="other"].active{border-color:var(--green)}
+  .chip.tmpl{margin-left:auto;color:var(--ink);border-style:dashed}
+  .chip.tmpl:hover{border-color:var(--pink)}
+
+  /* toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px dashed var(--panel-line)}
+  .tbtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;cursor:pointer;padding:8px 13px;border-radius:9px;background:var(--panel);border:1px solid var(--panel-line);color:var(--muted);transition:all .15s}
+  .tbtn:hover{color:var(--ink);border-color:rgba(255,255,255,.3)}
+  .tbtn.primary{color:#0a0814;background:#fff;border-color:#fff}
+  .tbtn.primary.on{background:var(--green);border-color:var(--green)}
+  .tbtn.danger:hover{border-color:var(--pink);color:var(--pink)}
+  .edit-only{display:none}
+  body.editing .edit-only{display:inline-flex}
+  .tb-date{display:none;align-items:center;gap:7px}
+  body.editing .tb-date{display:inline-flex}
+  .tb-date input{font-family:'Space Mono',monospace;font-size:12px;background:rgba(0,0,0,.3);border:1px solid var(--panel-line);color:var(--ink);border-radius:8px;padding:7px 9px;color-scheme:dark}
+  .edit-hint{display:none;width:100%;font-family:'Space Mono',monospace;font-size:11px;color:var(--faint);margin-top:6px;line-height:1.6}
+  body.editing .edit-hint{display:block}
+  .sync{font-family:'Space Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.04em;white-space:nowrap}
+  .editor-wrap{display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--faint)}
+  .editor-name{background:rgba(0,0,0,.3);border:1px solid var(--panel-line);color:var(--ink);border-radius:8px;padding:6px 9px;font-size:12px;font-family:'Inter',sans-serif;width:128px}
+  .editor-name:focus{outline:none;border-color:var(--cyan)}
+
+  .month{margin-top:38px}
+  .month-name{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:22px;letter-spacing:.04em;color:var(--ink);display:flex;align-items:baseline;gap:12px;margin:0 0 14px}
+  .month-name span{font-family:'Space Mono',monospace;font-size:12px;color:var(--faint);letter-spacing:.1em}
+  .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px}
+  .dow div{text-align:center;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--faint);text-transform:uppercase}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .cell{position:relative;min-height:92px;border-radius:14px;background:var(--panel);border:1px solid var(--panel-line);padding:9px 10px;display:flex;flex-direction:column;transition:transform .15s,box-shadow .2s,border-color .15s,opacity .2s}
+  .cell.empty{background:transparent;border-color:transparent}
+  .cell .num{font-family:'Space Mono',monospace;font-weight:700;font-size:15px;color:var(--muted)}
+  .cell.has{cursor:pointer;border-color:rgba(255,255,255,.16)}
+  .cell.has .num{color:var(--ink)}
+  .cell.has:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.4);box-shadow:0 14px 30px -14px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.05)}
+  .cell.has:focus-visible,.cell.noc:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  .cell .label{margin-top:auto;font-size:11.5px;font-weight:600;color:var(--ink);line-height:1.25}
+  .dots{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+  .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor}
+  .dot.email{background:var(--cyan);color:var(--cyan)}
+  .dot.news{background:var(--gold);color:var(--gold)}
+  .dot.discord{background:var(--purple);color:var(--purple)}
+  .dot.other{background:var(--green);color:var(--green)}
+  .cell.past{opacity:.4}
+  .cell.past.has:hover{opacity:.85}
+  .cell.today{border:1.5px solid transparent;background:linear-gradient(var(--panel-solid),var(--panel-solid)) padding-box,var(--holo) border-box;animation:livepulse 2.4s ease-in-out infinite}
+  @keyframes livepulse{0%,100%{box-shadow:0 0 0 0 rgba(154,123,255,0)}50%{box-shadow:0 0 26px -4px rgba(154,123,255,.55)}}
+  .today-tag{position:absolute;top:-9px;right:8px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;color:#0a0814;background:#fff;padding:2px 7px;border-radius:99px;text-transform:uppercase;box-shadow:0 0 14px rgba(255,255,255,.5)}
+  .cell.filtered{opacity:.12;pointer-events:none;filter:grayscale(1)}
+  /* edit affordance */
+  body.editing .cell.noc{cursor:pointer}
+  body.editing .cell.noc:hover{border-color:var(--green);background:rgba(43,229,107,.06)}
+  body.editing .cell.noc::after{content:'+';position:absolute;right:9px;bottom:7px;font-family:'Space Mono',monospace;font-weight:700;font-size:18px;color:var(--green);opacity:.55;line-height:1}
+
+  /* drawer */
+  .scrim{position:fixed;inset:0;background:rgba(4,3,10,.66);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+  .scrim.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(580px,100%);background:var(--bg2);border-left:1px solid var(--panel-line);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.1,1);z-index:50;display:flex;flex-direction:column;box-shadow:-30px 0 60px -20px rgba(0,0,0,.7)}
+  .drawer.open{transform:translateX(0)}
+  .drawer-head{padding:22px 24px 18px;border-bottom:1px solid var(--panel-line);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;background:linear-gradient(180deg,rgba(154,123,255,.08),transparent)}
+  .drawer-date{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}
+  .drawer-title{font-family:'Anton',sans-serif;font-size:30px;text-transform:uppercase;letter-spacing:.01em;margin:4px 0 0;line-height:1}
+  .close{flex:none;width:36px;height:36px;border-radius:10px;cursor:pointer;background:var(--panel);border:1px solid var(--panel-line);color:var(--ink);font-size:18px;line-height:1;display:grid;place-items:center;transition:background .15s,transform .15s}
+  .close:hover{background:rgba(255,255,255,.1);transform:rotate(90deg)}
+  .drawer-body{padding:18px 24px 48px;overflow-y:auto}
+
+  .card{border:1px solid var(--panel-line);border-radius:14px;background:var(--panel);margin-bottom:16px;overflow:hidden}
+  .card-top{display:flex;align-items:center;gap:10px;padding:13px 15px 11px;flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:99px}
+  .badge svg{width:12px;height:12px}
+  .badge.email{background:rgba(25,227,255,.13);color:var(--cyan)}
+  .badge.news{background:rgba(255,194,60,.13);color:var(--gold)}
+  .badge.discord{background:rgba(154,123,255,.15);color:var(--purple)}
+  .badge.other{background:rgba(43,229,107,.13);color:var(--green)}
+  .card-name{font-weight:600;font-size:14px;color:var(--ink)}
+  .card-inner{padding:0 15px 15px}
+  .item-actions{margin-left:auto;display:flex;gap:6px}
+  .mini{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--panel-line);background:rgba(255,255,255,.04);color:var(--muted);padding:4px 9px;border-radius:7px;transition:all .14s}
+  .mini:hover{color:var(--ink);border-color:rgba(255,255,255,.35)}
+  .mini.del:hover{color:var(--pink);border-color:var(--pink)}
+
+  .field{margin-top:13px}
+  .field-label{font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .copybtn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;cursor:pointer;border:1px solid var(--panel-line);background:rgba(255,255,255,.04);color:var(--muted);padding:3px 9px;border-radius:7px;text-transform:uppercase;transition:all .14s;flex:none}
+  .copybtn:hover{color:var(--ink);border-color:rgba(255,255,255,.35)}
+  .copybtn.done{color:var(--green);border-color:var(--green)}
+  .val{background:rgba(0,0,0,.28);border:1px solid var(--panel-line);border-radius:10px;padding:11px 13px;font-size:13.5px;color:var(--ink);white-space:pre-wrap;line-height:1.55}
+  .val.mono{font-family:'Space Mono',monospace;font-size:12.5px}
+  .subj-list .subj{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(0,0,0,.28);border:1px solid var(--panel-line);border-radius:9px;padding:9px 11px;margin-bottom:7px;font-size:13.5px}
+  .subj-list .subj:last-child{margin-bottom:0}
+  .note{font-size:13.5px;color:var(--muted);padding:11px 13px;background:rgba(43,229,107,.06);border:1px solid rgba(43,229,107,.2);border-radius:10px}
+  .note strong{color:var(--green)}
+  .preview{font-size:12.5px;color:var(--muted);margin-top:9px;line-height:1.5;max-height:46px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 60%,transparent)}
+
+  /* edit forms */
+  .ed-event{background:rgba(154,123,255,.06);border:1px solid rgba(154,123,255,.22);border-radius:13px;padding:14px 15px;margin-bottom:18px}
+  .ed-grid{display:flex;gap:12px;flex-wrap:wrap}
+  .ed-f{flex:1;min-width:130px}
+  .ed-lab{font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:5px;display:block}
+  .ed-in,.ed-ta{width:100%;background:rgba(0,0,0,.32);border:1px solid var(--panel-line);color:var(--ink);border-radius:9px;padding:9px 11px;font-size:13.5px;font-family:'Inter',sans-serif;color-scheme:dark}
+  .ed-in:focus,.ed-ta:focus{outline:none;border-color:var(--cyan)}
+  .ed-ta{min-height:150px;resize:vertical;line-height:1.55}
+  .ed-ta.mono{font-family:'Space Mono',monospace;font-size:12.5px}
+  .subj-edit{display:flex;gap:7px;margin-bottom:7px}
+  .subj-edit .ed-in{flex:1}
+  .btn-row{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+  .btn{font-size:12.5px;font-weight:700;cursor:pointer;padding:9px 16px;border-radius:9px;border:1px solid var(--panel-line);transition:all .15s}
+  .btn.save{background:var(--green);color:#072413;border-color:var(--green)}
+  .btn.save:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--muted)}
+  .btn.ghost:hover{color:var(--ink);border-color:rgba(255,255,255,.35)}
+  .btn.danger{background:transparent;color:var(--pink);border-color:rgba(255,45,155,.4)}
+  .btn.danger:hover{background:rgba(255,45,155,.12)}
+  .add-copy{border:1px dashed var(--panel-line);border-radius:13px;padding:14px 15px;margin-top:4px}
+  .add-copy .ed-lab{margin-bottom:9px}
+  .typebtns{display:flex;gap:8px;flex-wrap:wrap}
+  .typebtn{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;cursor:pointer;padding:8px 13px;border-radius:9px;background:var(--panel);border:1px solid var(--panel-line);color:var(--ink);transition:all .15s}
+  .typebtn svg{width:13px;height:13px}
+  .typebtn[data-type="email"]:hover{border-color:var(--cyan);color:var(--cyan)}
+  .typebtn[data-type="news"]:hover{border-color:var(--gold);color:var(--gold)}
+  .typebtn[data-type="discord"]:hover{border-color:var(--purple);color:var(--purple)}
+  .typebtn[data-type="other"]:hover{border-color:var(--green);color:var(--green)}
+  .del-event-wrap{margin-top:20px;text-align:center}
+  .empty-msg{text-align:center;color:var(--faint);font-size:13px;padding:18px 0}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:#fff;color:#0a0814;font-weight:700;font-size:13px;padding:10px 18px;border-radius:99px;opacity:0;pointer-events:none;transition:all .25s;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  footer{margin-top:46px;font-family:'Space Mono',monospace;font-size:11px;color:var(--faint);text-align:center;line-height:1.8}
+
+  @media (max-width:560px){
+    .wrap{padding:22px 13px 70px}
+    .cell{min-height:66px;padding:6px 7px;border-radius:11px}
+    .cell .num{font-size:12px}
+    .cell .label{display:none}
+    .grid,.dow{gap:5px}
+    .drawer{width:100%}
+    .chip.tmpl{margin-left:0}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Vegas Infinite · Internal</p>
+    <h1>Kickoff<br>Championship</h1>
+    <p class="h1-sub">Comms Calendar</p>
+    <div class="meta">
+      <span><b>Jun 11</b> – <b>Jul 19, 2026</b></span>
+      <span>MTT Series: <b>Jun 15 – Jul 12</b></span>
+      <span><b>240+</b> events</span>
+    </div>
+
+    <div class="progress">
+      <div class="progress-track"><div class="progress-fill" id="pfill"></div><div class="progress-dot" id="pdot"></div></div>
+      <div class="progress-labels"><span>Jun 11 · Launch</span><span class="progress-status" id="pstatus">—</span><span>Jul 19 · Finale</span></div>
+    </div>
+
+    <div class="legend" id="legend">
+      <span class="legend-hint">FILTER:</span>
+      <span class="chip" data-ch="email"><span class="ic" id="ic-email"></span>Email</span>
+      <span class="chip" data-ch="news"><span class="ic" id="ic-news"></span>News article</span>
+      <span class="chip" data-ch="discord"><span class="ic" id="ic-discord"></span>Discord</span>
+      <span class="chip" data-ch="other"><span class="ic" id="ic-other"></span>Push / IAP / Promo</span>
+      <span class="chip tmpl" id="tmplBtn">★ Recurring templates</span>
+    </div>
+
+    <div class="toolbar">
+      <button class="tbtn primary" id="editToggle">✎ Edit mode</button>
+      <span class="sync" id="sync">● Connecting…</span>
+      <label class="editor-wrap edit-only">Editor <input id="editorInput" class="editor-name" placeholder="your name"></label>
+      <span class="tb-date"><input type="date" id="newDate"><button class="tbtn" id="newEventBtn">+ Add event</button></span>
+      <button class="tbtn edit-only" id="exportBtn">↓ Export</button>
+      <button class="tbtn edit-only" id="importBtn">↑ Import</button>
+      <button class="tbtn edit-only danger" id="resetBtn">⟳ Reset to default</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+      <div class="edit-hint">Click any day to add or edit copy. Edits are shared with everyone within a few seconds. Set your name so teammates can see who changed what. <b>Export</b> and <b>Import</b> still work as a backup.</div>
+    </div>
+  </header>
+
+  <main id="months"></main>
+
+  <footer>
+    KICKOFF CHAMPIONSHIP COMMS · SINGLE SOURCE OF TRUTH<br>
+    No "World Cup" / "FIFA" in copy · "sports pick" not "bet" · no em dashes
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+  <div class="drawer-head">
+    <div><div class="drawer-date" id="drawerDate"></div><h2 class="drawer-title" id="drawerTitle"></h2></div>
+    <button class="close" id="closeBtn" aria-label="Close">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+const ICONS={
+  email:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>',
+  news:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/><path d="M8 9h6M8 13h6"/></svg>',
+  discord:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 4H3v13h5l2 3 2-3h7z"/><circle cx="9" cy="10.5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg>',
+  other:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11 11 3l9 1 1 9-8 8z"/><circle cx="14.5" cy="9.5" r="1.4" fill="currentColor" stroke="none"/></svg>'
+};
+const CH_NAME={email:'Email',news:'News article',discord:'Discord',other:'Push / IAP / Promo'};
+['email','news','discord','other'].forEach(k=>{document.getElementById('ic-'+k).innerHTML=ICONS[k];});
+
+/* ---------- seed data ---------- */
+const SEED={
+  templates:{label:'Recurring Discord templates',items:[
+    {type:'discord',name:'Weekly match poll (mid-week)',body:`🗳️ MATCH POLL ⚽\nWho is taking it this week? Vote below to lock in your prediction and earn rewards.`},
+    {type:'discord',name:'Raffle refresh',body:`🎁 RAFFLE REFRESH\nFresh prizes just hit the Kickoff Championship raffles. Complete missions to earn entries. Score big, win bigger.`},
+    {type:'discord',name:'Promo code drop',body:`🎟️ PROMO CODE DROP\n[Occasion]: redeem [CODE] for [items]. Live for a limited time, so grab it while you can.`},
+    {type:'discord',name:'Weekly leaderboard reset',body:`🔄 LEADERBOARD RESET\nFresh week, fresh climb. The Target Shootout board just reset. Make your run.`}
+  ]},
+  days:{
+  '2026-06-11':{label:'Launch',items:[
+    {type:'email',name:'Launch email',
+      subjects:['The Kickoff Championship is LIVE ⚽','The whistle\'s blown. Game on.','Your shot at the cup starts now'],
+      preheader:'New arena, new missions, massive prize pools.',
+      body:`Hi [First Name],\n\nThe whistle's blown. The Kickoff Championship is officially live, and the Casino One floor just got a major upgrade.\n\nStep into the all-new Casino One Tournament Arena, your home base for the biggest soccer-themed celebration we have ever run. Here is what is live right now:\n\n⚽ The Tournament Arena is open. A brand-new space built for the cup, ready to play today.\n🎯 Missions & Raffles are live. Complete daily and weekly missions to earn entries into exclusive raffles, packed with limited-time soccer-themed items, titles, chips, and creds.\n🏆 The MTT Series kicks off June 15. 240+ events across four weeks, with massive prize pools and exclusive titles on the line.\n\nScore big. Win bigger. Your shot at glory starts now.\n\n[Play Now]\n\nSee you on the floor,\nThe Vegas Infinite Team`},
+    {type:'news',name:'Launch news post',headline:'THE KICKOFF CHAMPIONSHIP IS LIVE!',
+      body:`Compete for the cup.\n\nThe Kickoff Championship has officially kicked off and runs through July 19. The Casino One floor is fully decked out for the occasion, and the all-new Casino One Tournament Arena is now open for play.\n\nThe Tournament Arena is open\nA brand-new space on the Casino One floor, built for the biggest soccer-themed celebration we have ever run. Step in and take your seat today.\n\nThe MTT Series kicks off June 15\nThe Kickoff Championship MTT Series runs from June 15 to July 12, featuring 240+ events across four weeks of tournament action. Climb the series leaderboard and chase exclusive titles as every hand counts. Whether you are grinding through low stakes or going all-in on the High Roller, this is your shot at glory.\n\nMissions & Raffles, live now\nComplete daily and weekly missions to earn entries into exclusive raffles, packed with limited-time soccer-themed items, titles, plus bonus chips and creds. The more you play, the more chances you have to win.\n\nScore big. Win bigger. See you on the floor.`},
+    {type:'discord',name:'Launch day post',
+      body:`⚽ THE KICKOFF CHAMPIONSHIP IS LIVE ⚽\nThe Casino One Tournament Arena is open and the cup is up for grabs. Here is what is live right now:\n🏟️ New Tournament Arena on the Casino One floor\n🎯 Daily and weekly missions + exclusive raffles\n🏆 MTT Series kicks off June 15 (240+ events)\nDrop a ⚽ if you are going for the cup. Match polls and promo codes incoming all event long.`},
+    {type:'other',note:'**National Day promo:** Kickoff Championship Begins: 500 Creds, 20,000 Chips. **FOMO Booster** live (short window). Sports pick weekly promos start.'}
+  ]},
+  '2026-06-15':{label:'MTT kickoff',items:[
+    {type:'email',name:'MTT Series kickoff email',
+      subjects:['240 events. One champion. The MTT Series is live.','Take your seat. The cup is up for grabs.'],
+      preheader:'The Kickoff Championship MTT Series starts now.',
+      body:`Hi [First Name],\n\nIt is go time. The Kickoff Championship MTT Series is officially live in the Casino One Tournament Arena.\n\n240+ events. Four weeks. Massive prize pools.\n\nTake your seat, climb the series leaderboard, and chase exclusive titles as every hand counts. Whether you are grinding through low stakes or going all-in on the High Roller, every event is your shot at the cup.\n\nNew: the Kickoff Championship Pack is here for a limited time. Load up and make your run.\n\n[View the Schedule]\n\nSee you in the Arena,\nThe Vegas Infinite Team`},
+    {type:'news',name:'MTT Series live news post',headline:'240+ EVENTS. THE MTT SERIES IS LIVE!',
+      body:`The Kickoff Championship MTT Series is now live in the Casino One Tournament Arena and runs through July 12. That is 240+ events across four weeks, with massive prize pools and exclusive titles on the line.\n\nTake your seat, climb the series leaderboard, and make every hand count. The all-new Kickoff Championship Pack is also available now for a limited time.\n\nThis is your shot at the cup. Score big. Win bigger.`},
+    {type:'discord',name:'Week ahead post',
+      body:`📅 WEEK 1 IS HERE ⚽\nThe MTT Series just went live: 240+ events, four weeks, massive prize pools. Take your seat in the Casino One Tournament Arena.\nMatch polls and the first raffle refresh drop this week. Let's go.`},
+    {type:'other',note:'**Patch 173** release. Note: public page says MTT starts Jun 15, schedule doc says Jun 16, confirm before send.'}
+  ]},
+  '2026-06-16':{label:'IAP launch',items:[
+    {type:'other',note:'**Kickoff Championship Pack (IAP)** launches. Envelope rewards Jun 16 to 19 for new and returning players. Free Creds to try Target Shootout.'}
+  ]},
+  '2026-06-18':{label:'Brackets + raffle',items:[
+    {type:'discord',name:'Brackets revealed',body:`🏆 DRAFT EVENT: TEAMS & BRACKETS ARE SET\nThe matchups are locked. Group Stage kicks off June 26. Place your predictions.`},
+    {type:'discord',name:'Raffle refresh',body:`🎁 RAFFLE REFRESH\nFresh prizes just hit the Kickoff Championship raffles. Complete missions to earn entries. Score big, win bigger.`},
+    {type:'discord',name:'Promo code drop',body:`🎟️ PROMO CODE DROP\nNational Splurge Day: redeem your code for Cash Stacks, 15,000 Chips, Coin. Live for a limited time, so grab it while you can.`},
+    {type:'other',note:'**National Splurge Day** promo code. Raffle prizing changes begin (Week 0 to 2 swaps).'}
+  ]},
+  '2026-06-21':{label:'Father\'s Day',items:[
+    {type:'discord',name:'Promo code drop',body:`🎟️ PROMO CODE DROP\nFather's Day: redeem your code for Coffee x5, Brown Ale x5, Bolex Watch, 15,000 Chips. Live for a limited time, so grab it while you can.`},
+    {type:'other',note:'**Father\'s Day** promo code drop.'}
+  ]},
+  '2026-06-22':{label:'Mid-event push',items:[
+    {type:'email',name:'Mid-event momentum email',
+      subjects:['Fresh raffle prizes just dropped ⚽','The prize pool keeps growing'],
+      preheader:'New items, new pack, leaderboard is heating up.',
+      body:`Hi [First Name],\n\nWe are deep into the cup and the prize pool keeps growing.\n\nThe raffles just got an upgrade, now stacked with even more limited-time soccer-themed items and titles. Keep completing missions to earn your entries.\n\nGrab the Football Favorites Pack, available now for a limited time, and load up for the back half of the Championship.\n\nThe MTT Series runs through July 12, so there is still plenty of time to climb the leaderboard and make your run at glory.\n\n[Play Now]\n\nThe Vegas Infinite Team`},
+    {type:'discord',name:'Leaderboard reset',body:`🔄 LEADERBOARD RESET\nFresh week, fresh climb. The Target Shootout board just reset and the Football Favorites Pack is live. Make your run.`},
+    {type:'other',note:'**Football Favorites Pack ($9.99)** launches. Target Shootout leaderboard reset and rewards distributed.'}
+  ]},
+  '2026-06-26':{label:'Group Stage',items:[
+    {type:'discord',name:'Group Stage begins',body:`⚔️ GROUP STAGE IS ON\n6 teams, 2 groups, one cup. The draft event Group Stage kicks off today. Follow your team and place your predictions.`},
+    {type:'other',note:'**Draft Event Group Stage:** 6 teams, 2 groups of 3 (Jun 26 to 28).'}
+  ]},
+  '2026-06-28':{label:'Knockout code',items:[
+    {type:'discord',name:'Promo code drop',body:`🎟️ PROMO CODE DROP\nKnockout Bracket Begins: redeem your code for 20,000 Chips. Live for a limited time, so grab it while you can.`},
+    {type:'other',note:'**Knockout Bracket Begins** promo code.'}
+  ]},
+  '2026-06-29':{label:'Group winners',items:[
+    {type:'discord',name:'Group winners + progress',body:`✅ GROUP STAGE WINNERS\nThe bracket is taking shape. See who advanced and where we stand heading into the Grand Final.`},
+    {type:'other',note:'Target Shootout reset. Group stage winners revealed plus event progress update.'}
+  ]},
+  '2026-07-02':{label:'Raffle refresh',items:[
+    {type:'discord',name:'Raffle refresh',body:`🎁 RAFFLE REFRESH\nFresh prizes just hit the Kickoff Championship raffles. Complete missions to earn entries. Score big, win bigger.`},
+    {type:'other',note:'Week 2 to 4 raffle prizing changes in effect (Casino One Champagne, Smoke Grenade, and more).'}
+  ]},
+  '2026-07-03':{label:'4th of July',items:[
+    {type:'email',name:'4th of July crossover email',
+      subjects:['Double the action this 4th of July 🎆','Fireworks on the floor'],
+      preheader:'Championship rolls on, plus a holiday celebration.',
+      body:`Hi [First Name],\n\nThe Kickoff Championship is in full swing, and we are adding some fireworks.\n\nCelebrate the 4th with limited-time holiday rewards and the GoGo event (July 4 to 5), all while the MTT Series keeps rolling toward the Grand Final.\n\nDo not forget: missions, raffles, and 240+ events are still live. The cup is still up for grabs.\n\n[Play Now]\n\nThe Vegas Infinite Team`},
+    {type:'discord',name:'Holiday hype',body:`🎆 4TH OF JULY x KICKOFF CHAMPIONSHIP\nDouble the action this weekend. Holiday rewards, the GoGo event (Jul 4 to 5), and 240+ MTT events all live at once. Light it up.`},
+    {type:'other',note:'**Independence Day** promo code (Jul 4). **GoGo event** Jul 4 to 5. 4th of July event plus IAP (Jul 3 to 6).'}
+  ]},
+  '2026-07-10':{label:'Grand Final',items:[
+    {type:'email',name:'Grand Final / final push email',
+      subjects:['The Grand Final is here 🏆','Last events. Make your run.'],
+      preheader:'The MTT Series wraps July 12.',
+      body:`Hi [First Name],\n\nThis is it. The Kickoff Championship is entering its final stretch.\n\nThe MTT Series wraps July 12, so these are your last events to climb the leaderboard and lock in those exclusive titles.\n\nLast call on missions and raffles too. Every entry counts before the final prizes are drawn.\n\nDo not let the cup slip away.\n\n[Play Now]\n\nThe Vegas Infinite Team`},
+    {type:'discord',name:'Grand Final live',body:`🔥 GRAND FINAL: GROUP A vs GROUP B\nThe Kickoff Championship draft event comes down to this. Tune in, make your final predictions, and grab your rewards.`},
+    {type:'other',note:'**Grand Final** Jul 10 to 12. MTT Series wraps Jul 12.'}
+  ]},
+  '2026-07-12':{label:'MTT ends',items:[
+    {type:'discord',name:'Promo code drop',body:`🎟️ PROMO CODE DROP\nPaper Bag Day: redeem your code for Smiley Paper Bag Face, 15,000 Chips. Live for a limited time, so grab it while you can.`},
+    {type:'other',note:'**MTT Series ends today.** Paper Bag Day promo code.'}
+  ]},
+  '2026-07-14':{label:'Patch + Champion Pack',items:[
+    {type:'other',note:'**Patch 174.** $99.99 Champion Pack launches.'}
+  ]},
+  '2026-07-17':{label:'Last chance',items:[
+    {type:'email',name:'Last chance email',
+      subjects:['Final whistle approaching ⚽','Last chance for the cup'],
+      preheader:'The Kickoff Championship ends July 19.',
+      body:`Hi [First Name],\n\nThe Kickoff Championship ends July 19. This is your last chance to:\n\n- Cash in your final raffle entries\n- Climb the last steps of the leaderboard\n- Claim your soccer-themed items and titles before they are gone\n\nIt has been a massive run. Score big one last time before the final whistle.\n\n[Play Now]\n\nThe Vegas Infinite Team`},
+    {type:'discord',name:'Prediction rewards',body:`🎯 PREDICTION REWARDS ARE OUT\nFinal game prediction rewards have been distributed. Check your account, then make your last push before the event ends July 19.`},
+    {type:'other',note:'Final game prediction rewards distributed.'}
+  ]},
+  '2026-07-19':{label:'Finale',items:[
+    {type:'news',name:'Finale wrap news post',headline:'THE FINAL WHISTLE: KICKOFF CHAMPIONSHIP WRAPS TODAY',
+      body:`What a run. The Kickoff Championship comes to a close today after six weeks, 240+ MTT events, and massive prize pools.\n\nFinal raffle draws, last leaderboard results, and sports pick rewards are going out now. Thank you to everyone who took the floor and competed for the cup.\n\nThis is not the end of the action. Stay tuned for what is next.`},
+    {type:'discord',name:'Final whistle',body:`🏁 FINAL WHISTLE\nThe Kickoff Championship wraps today. Final Target Shootout results, last raffle draws, and sports pick rewards are going out. GG to everyone who competed. Stay tuned for what is next.`},
+    {type:'other',note:'**Event ends** (Jul 19 to 20). Target Shootout finale, sports pick rewards, post-mortem wrap-up. **Soccer Grand Final** promo code.'}
+  ]}
+  }
+};
+
+/* ---------- state + persistence ---------- */
+const STORE_KEY='kickoff_comms_v1';
+const API='/api/data';
+let REMOTE=false, lastUpdatedAt=0, pendingRemote=null, idc=0;
+function genId(){return 'i'+Date.now().toString(36)+(idc++).toString(36)+Math.floor(Math.random()*1e4).toString(36);}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function ensureIds(data){
+  Object.values(data.days).forEach(day=>day.items.forEach(it=>{if(!it.id)it.id=genId();}));
+  if(data.templates) data.templates.items.forEach(it=>{if(!it.id)it.id=genId();});
+}
+function normalize(data){
+  if(!data||!data.days) data=clone(SEED);
+  if(!data.templates) data.templates=clone(SEED.templates);
+  ensureIds(data);return data;
+}
+function localLoad(){try{const raw=localStorage.getItem(STORE_KEY);if(raw)return JSON.parse(raw);}catch(e){}return null;}
+function localSave(d){try{localStorage.setItem(STORE_KEY,JSON.stringify(d));}catch(e){}}
+function editorName(){return (localStorage.getItem('kickoff_editor')||'').trim();}
+function editKey(){return localStorage.getItem('kickoff_editkey')||'';}
+
+const state={data:normalize(localLoad()),editMode:false,activeFilter:new Set(),currentKey:null,editingItemId:null};
+
+function setStatus(kind){
+  const el=document.getElementById('sync');if(!el)return;
+  const map={live:['● Live · shared','var(--green)'],local:['● Local only (deploy to share)','var(--faint)'],saving:['Saving…','var(--cyan)'],error:['Save failed, will retry','var(--pink)'],locked:['Edit key required','var(--gold)'],pending:['New changes available','var(--gold)']};
+  const v=map[kind]||map.live;el.textContent=v[0];el.style.color=v[1];
+}
+async function serverGet(){const r=await fetch(API,{cache:'no-store'});if(!r.ok)throw new Error('get');return r.json();}
+async function serverPut(){
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-edit-key':editKey()},body:JSON.stringify({data:state.data,editor:editorName()})});
+  if(r.status===401){const k=prompt('Enter the team edit key to save changes:');if(k){localStorage.setItem('kickoff_editkey',k.trim());return serverPut();}throw new Error('unauthorized');}
+  if(!r.ok)throw new Error('save');
+  const doc=await r.json();lastUpdatedAt=doc.updatedAt||Date.now();return doc;
+}
+function save(){
+  localSave(state.data);
+  if(REMOTE){setStatus('saving');serverPut().then(()=>setStatus('live')).catch(e=>setStatus(e&&e.message==='unauthorized'?'locked':'error'));}
+}
+function applyRemote(doc){
+  state.data=normalize(doc.data);lastUpdatedAt=doc.updatedAt||Date.now();localSave(state.data);
+  renderCalendar();
+  if(drawer.classList.contains('open')&&!state.editMode){if(getDay(state.currentKey))renderDrawer();else closeDrawer();}
+  setStatus('live');showToast('Updated'+(doc.editor?(' by '+doc.editor):''));
+}
+function startPolling(){
+  setInterval(async()=>{
+    if(!REMOTE)return;
+    try{
+      const doc=await serverGet();
+      if(doc&&doc.data&&doc.updatedAt&&doc.updatedAt>lastUpdatedAt){
+        const busy=state.editMode&&drawer.classList.contains('open');
+        if(busy){pendingRemote=doc;setStatus('pending');}else applyRemote(doc);
+      }
+    }catch(e){}
+  },6000);
+}
+async function init(){
+  try{
+    const doc=await serverGet();
+    REMOTE=true;
+    if(doc&&doc.data){state.data=normalize(doc.data);lastUpdatedAt=doc.updatedAt||0;}
+    localSave(state.data);setStatus('live');startPolling();
+  }catch(e){REMOTE=false;setStatus('local');}
+  renderProgress();renderCalendar();
+  const t=document.querySelector('.cell.today');if(t)t.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+/* ---------- helpers ---------- */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtNote(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');}
+const TODAY=new Date();
+function fmtKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+const todayKey=fmtKey(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MNAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function dateLabel(key){const[y,m,d]=key.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});}
+function channelsOf(day){const set=new Set(day.items.map(i=>i.type));return ['email','news','discord','other'].filter(c=>set.has(c));}
+
+/* ---------- progress ---------- */
+function renderProgress(){
+  const start=new Date(2026,5,11),end=new Date(2026,6,19),now=TODAY,span=end-start;
+  let pct=(now-start)/span*100,status;
+  if(now<start){pct=0;const days=Math.ceil((start-now)/86400000);status='T-minus '+days+' day'+(days===1?'':'s');}
+  else if(now>end){pct=100;status='Event complete';}
+  else{status='Day '+(Math.floor((now-start)/86400000)+1)+' of 39';}
+  pct=Math.max(0,Math.min(100,pct));
+  document.getElementById('pfill').style.width=pct+'%';
+  document.getElementById('pdot').style.left=pct+'%';
+  document.getElementById('pstatus').textContent=status;
+}
+
+/* ---------- calendar ---------- */
+const monthsEl=document.getElementById('months');
+function monthsToShow(){
+  const set=new Map();
+  set.set('2026-5','');set.set('2026-6',''); // June, July always
+  Object.keys(state.data.days).forEach(k=>{const[y,m]=k.split('-').map(Number);set.set(y+'-'+(m-1),'');});
+  return [...set.keys()].map(s=>s.split('-').map(Number)).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+}
+function renderCalendar(){
+  monthsEl.innerHTML='';
+  monthsToShow().forEach(([y,m])=>{
+    const sec=document.createElement('section');sec.className='month';
+    const days=new Date(y,m+1,0).getDate();
+    const firstDow=new Date(y,m,1).getDay();
+    let cells='';
+    for(let i=0;i<firstDow;i++) cells+='<div class="cell empty"></div>';
+    for(let d=1;d<=days;d++){
+      const key=fmtKey(y,m,d),data=state.data.days[key];
+      const isToday=key===todayKey,isPast=key<todayKey;
+      let cls='cell',channels=[];
+      if(data){cls+=' has';channels=channelsOf(data);} else {cls+=' noc';}
+      if(isPast) cls+=' past';
+      if(isToday) cls+=' today';
+      const dots=channels.map(c=>'<span class="dot '+c+'"></span>').join('');
+      const label=data?'<div class="label">'+esc(data.label)+'</div>':'';
+      const tag=isToday?'<span class="today-tag">Today</span>':'';
+      const interactive=data||'';
+      const attrs=' data-key="'+key+'"'+(data?(' tabindex="0" role="button" data-ch="'+channels.join(' ')+'" aria-label="'+esc(data.label)+', '+MNAMES[m]+' '+d+'"'):' aria-label="Add event '+MNAMES[m]+' '+d+'"');
+      cells+='<div class="'+cls+'"'+attrs+'>'+tag+'<span class="num">'+d+'</span>'+(dots?'<div class="dots">'+dots+'</div>':'')+label+'</div>';
+    }
+    sec.innerHTML='<h3 class="month-name">'+MNAMES[m]+' <span>'+y+'</span></h3>'+
+      '<div class="dow">'+DOW.map(x=>'<div>'+x+'</div>').join('')+'</div>'+
+      '<div class="grid">'+cells+'</div>';
+    monthsEl.appendChild(sec);
+  });
+  applyFilter();
+}
+
+/* ---------- drawer: view rendering ---------- */
+function renderItemView(it){
+  const name=CH_NAME[it.type];let inner='';
+  if(it.type==='email'){
+    inner+='<div class="field"><div class="field-label">Subject options</div><div class="subj-list">'+
+      it.subjects.map(s=>'<div class="subj"><span>'+esc(s)+'</span><button class="copybtn" data-copy="'+encodeURIComponent(s)+'">Copy</button></div>').join('')+'</div></div>';
+    inner+='<div class="field"><div class="field-label">Preheader <button class="copybtn" data-copy="'+encodeURIComponent(it.preheader)+'">Copy</button></div><div class="val">'+esc(it.preheader)+'</div></div>';
+    inner+='<div class="field"><div class="field-label">Body <button class="copybtn" data-copy="'+encodeURIComponent(it.body)+'">Copy</button></div><div class="val">'+esc(it.body)+'</div></div>';
+  }else if(it.type==='news'){
+    inner+='<div class="field"><div class="field-label">Headline <button class="copybtn" data-copy="'+encodeURIComponent(it.headline)+'">Copy</button></div><div class="val">'+esc(it.headline)+'</div></div>';
+    inner+='<div class="field"><div class="field-label">Body <button class="copybtn" data-copy="'+encodeURIComponent(it.body)+'">Copy</button></div><div class="val">'+esc(it.body)+'</div></div>';
+  }else if(it.type==='discord'){
+    inner+='<div class="field"><div class="field-label">Post copy <button class="copybtn" data-copy="'+encodeURIComponent(it.body)+'">Copy</button></div><div class="val mono">'+esc(it.body)+'</div></div>';
+  }else if(it.type==='other'){
+    inner+='<div class="field"><div class="note">'+fmtNote(it.note)+'</div></div>';
+  }
+  const editBtns=state.editMode?'<span class="item-actions"><button class="mini" data-action="edit-item" data-id="'+it.id+'">Edit</button><button class="mini del" data-action="del-item" data-id="'+it.id+'">Delete</button></span>':'';
+  return '<div class="card"><div class="card-top"><span class="badge '+it.type+'">'+ICONS[it.type]+' '+name+'</span><span class="card-name">'+esc(it.name||'')+'</span>'+editBtns+'</div><div class="card-inner">'+inner+'</div></div>';
+}
+
+/* ---------- drawer: edit rendering ---------- */
+function renderItemEdit(it){
+  let fields='';
+  if(it.type==='email'){
+    fields+='<div class="ed-f"><span class="ed-lab">Name / label</span><input class="ed-in" id="f-name" value="'+esc(it.name||'')+'"></div>';
+    fields+='<div class="ed-f" style="margin-top:11px"><span class="ed-lab">Subject options</span><div id="subjWrap">'+
+      (it.subjects&&it.subjects.length?it.subjects:['']).map(s=>'<div class="subj-edit"><input class="ed-in subj-input" value="'+esc(s)+'"><button class="mini del" data-action="del-subj">✕</button></div>').join('')+
+      '</div><button class="mini" data-action="add-subj" style="margin-top:2px">+ Add subject line</button></div>';
+    fields+='<div class="ed-f" style="margin-top:11px"><span class="ed-lab">Preheader</span><input class="ed-in" id="f-pre" value="'+esc(it.preheader||'')+'"></div>';
+    fields+='<div class="ed-f" style="margin-top:11px"><span class="ed-lab">Body</span><textarea class="ed-ta" id="f-body">'+esc(it.body||'')+'</textarea></div>';
+  }else if(it.type==='news'){
+    fields+='<div class="ed-f"><span class="ed-lab">Name / label</span><input class="ed-in" id="f-name" value="'+esc(it.name||'')+'"></div>';
+    fields+='<div class="ed-f" style="margin-top:11px"><span class="ed-lab">Headline</span><input class="ed-in" id="f-head" value="'+esc(it.headline||'')+'"></div>';
+    fields+='<div class="ed-f" style="margin-top:11px"><span class="ed-lab">Body</span><textarea class="ed-ta" id="f-body">'+esc(it.body||'')+'</textarea></div>';
+  }else if(it.type==='discord'){
+    fields+='<div class="ed-f"><span class="ed-lab">Name / label</span><input class="ed-in" id="f-name" value="'+esc(it.name||'')+'"></div>';
+    fields+='<div class="ed-f" style="margin-top:11px"><span class="ed-lab">Post copy</span><textarea class="ed-ta mono" id="f-body">'+esc(it.body||'')+'</textarea></div>';
+  }else if(it.type==='other'){
+    fields+='<div class="ed-f"><span class="ed-lab">Note (use **bold** for emphasis)</span><textarea class="ed-ta" id="f-note">'+esc(it.note||'')+'</textarea></div>';
+  }
+  return '<div class="card"><div class="card-top"><span class="badge '+it.type+'">'+ICONS[it.type]+' '+CH_NAME[it.type]+'</span></div><div class="card-inner">'+fields+
+    '<div class="btn-row"><button class="btn save" data-action="save-item" data-id="'+it.id+'">Save</button><button class="btn ghost" data-action="cancel-item" data-id="'+it.id+'">Cancel</button></div></div></div>';
+}
+function renderItemCompact(it){
+  let prev='';
+  if(it.type==='email') prev=(it.subjects&&it.subjects[0]||'')+' · '+(it.body||'').slice(0,90);
+  else if(it.type==='news') prev=(it.headline||'')+' · '+(it.body||'').slice(0,90);
+  else if(it.type==='discord') prev=(it.body||'').slice(0,110);
+  else prev=(it.note||'').replace(/\*\*/g,'').slice(0,110);
+  return '<div class="card"><div class="card-top"><span class="badge '+it.type+'">'+ICONS[it.type]+' '+CH_NAME[it.type]+'</span><span class="card-name">'+esc(it.name||'')+'</span>'+
+    '<span class="item-actions"><button class="mini" data-action="edit-item" data-id="'+it.id+'">Edit</button><button class="mini del" data-action="del-item" data-id="'+it.id+'">Delete</button></span></div>'+
+    '<div class="card-inner"><div class="preview">'+esc(prev)+'</div></div></div>';
+}
+
+/* ---------- drawer open ---------- */
+const scrim=document.getElementById('scrim'),drawer=document.getElementById('drawer');
+const dDate=document.getElementById('drawerDate'),dTitle=document.getElementById('drawerTitle'),dBody=document.getElementById('drawerBody');
+let lastFocus=null;
+
+function getDay(key){return key==='__tmpl__'?state.data.templates:state.data.days[key];}
+
+function renderDrawer(){
+  const key=state.currentKey,day=getDay(key);if(!day)return;
+  const isTmpl=key==='__tmpl__';
+  dDate.textContent=isTmpl?'Use anytime':(state.editMode?'Editing':dateLabel(key));
+  dTitle.textContent=day.label||'(untitled event)';
+  let html='';
+  if(state.editMode){
+    if(!isTmpl){
+      html+='<div class="ed-event"><div class="ed-grid">'+
+        '<div class="ed-f"><span class="ed-lab">Date</span><input type="date" class="ed-in" id="evDate" value="'+key+'"></div>'+
+        '<div class="ed-f"><span class="ed-lab">Event label</span><input class="ed-in" id="evLabel" value="'+esc(day.label||'')+'"></div>'+
+        '</div></div>';
+    }else{
+      html+='<div class="ed-event"><div class="ed-f"><span class="ed-lab">Section label</span><input class="ed-in" id="evLabel" value="'+esc(day.label||'')+'"></div></div>';
+    }
+    html+=day.items.map(it=> it.id===state.editingItemId?renderItemEdit(it):renderItemCompact(it)).join('');
+    if(!day.items.length) html+='<div class="empty-msg">No copy yet. Add an email, news post, Discord post, or note below.</div>';
+    html+='<div class="add-copy"><span class="ed-lab">Add copy</span><div class="typebtns">'+
+      ['email','news','discord','other'].map(t=>'<button class="typebtn" data-action="add-copy" data-type="'+t+'">'+ICONS[t]+' '+(t==='other'?'Note':CH_NAME[t])+'</button>').join('')+'</div></div>';
+    if(!isTmpl) html+='<div class="del-event-wrap"><button class="btn danger" data-action="del-event">Delete this event</button></div>';
+  }else{
+    html=day.items.map(renderItemView).join('');
+    if(!day.items.length) html='<div class="empty-msg">No copy for this day.</div>';
+  }
+  dBody.innerHTML=html;
+  attachEventFieldListeners();
+}
+
+function openDrawer(key){
+  state.currentKey=key;state.editingItemId=null;
+  renderDrawer();
+  scrim.classList.add('open');drawer.classList.add('open');
+  document.body.style.overflow='hidden';drawer.scrollTop=0;
+  document.getElementById('closeBtn').focus();
+}
+function closeDrawer(){
+  // clean up empty, label-less events created but abandoned
+  const key=state.currentKey;
+  if(key&&key!=='__tmpl__'){const d=state.data.days[key];if(d&&!d.items.length&&!(d.label||'').trim()){delete state.data.days[key];save();renderCalendar();}}
+  scrim.classList.remove('open');drawer.classList.remove('open');
+  document.body.style.overflow='';state.currentKey=null;state.editingItemId=null;
+  if(lastFocus)try{lastFocus.focus();}catch(e){}
+  if(pendingRemote){const d=pendingRemote;pendingRemote=null;applyRemote(d);}
+}
+scrim.addEventListener('click',closeDrawer);
+document.getElementById('closeBtn').addEventListener('click',closeDrawer);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawer.classList.contains('open'))closeDrawer();});
+
+/* ---------- field listeners (label/date auto-save) ---------- */
+function attachEventFieldListeners(){
+  const lab=document.getElementById('evLabel');
+  if(lab) lab.addEventListener('change',()=>{const d=getDay(state.currentKey);d.label=lab.value;save();dTitle.textContent=d.label||'(untitled event)';renderCalendar();});
+  const dt=document.getElementById('evDate');
+  if(dt) dt.addEventListener('change',()=>{
+    const nk=dt.value;if(!nk||nk===state.currentKey)return;
+    if(state.data.days[nk]){alert('An event already exists on '+nk+'. Pick another date.');dt.value=state.currentKey;return;}
+    state.data.days[nk]=state.data.days[state.currentKey];delete state.data.days[state.currentKey];
+    state.currentKey=nk;save();renderCalendar();renderDrawer();
+  });
+}
+
+/* ---------- drawer actions ---------- */
+const toast=document.getElementById('toast');let toastTimer;
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),1500);}
+
+dBody.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-action],.copybtn');if(!btn)return;
+  if(btn.classList.contains('copybtn')){
+    const text=decodeURIComponent(btn.dataset.copy);
+    navigator.clipboard.writeText(text).then(()=>{
+      btn.classList.add('done');const old=btn.textContent;btn.textContent='Copied ✓';
+      setTimeout(()=>{btn.classList.remove('done');btn.textContent=old;},1400);showToast('Copied');
+    }).catch(()=>{btn.textContent='Ctrl+C';});
+    return;
+  }
+  const action=btn.dataset.action,day=getDay(state.currentKey);
+  if(action==='edit-item'){state.editingItemId=btn.dataset.id;renderDrawer();}
+  else if(action==='cancel-item'){
+    const it=day.items.find(i=>i.id===btn.dataset.id);
+    if(it&&it._new){day.items=day.items.filter(i=>i.id!==it.id);save();renderCalendar();}
+    state.editingItemId=null;renderDrawer();
+  }
+  else if(action==='del-item'){
+    if(confirm('Delete this piece of copy?')){day.items=day.items.filter(i=>i.id!==btn.dataset.id);save();renderCalendar();state.editingItemId=null;renderDrawer();}
+  }
+  else if(action==='save-item'){saveItem(btn.dataset.id);}
+  else if(action==='add-subj'){
+    const wrap=document.getElementById('subjWrap');
+    const div=document.createElement('div');div.className='subj-edit';
+    div.innerHTML='<input class="ed-in subj-input" value=""><button class="mini del" data-action="del-subj">✕</button>';
+    wrap.appendChild(div);div.querySelector('input').focus();
+  }
+  else if(action==='del-subj'){btn.closest('.subj-edit').remove();}
+  else if(action==='add-copy'){
+    const type=btn.dataset.type;
+    const it={id:genId(),type,_new:true};
+    if(type==='email'){it.name='';it.subjects=[''];it.preheader='';it.body='';}
+    else if(type==='news'){it.name='';it.headline='';it.body='';}
+    else if(type==='discord'){it.name='';it.body='';}
+    else{it.note='';}
+    day.items.push(it);state.editingItemId=it.id;renderDrawer();
+    dBody.scrollTop=dBody.scrollHeight;
+  }
+  else if(action==='del-event'){
+    if(confirm('Delete this event and all its copy?')){delete state.data.days[state.currentKey];save();renderCalendar();closeDrawer();}
+  }
+});
+
+function saveItem(id){
+  const day=getDay(state.currentKey),it=day.items.find(i=>i.id===id);if(!it)return;
+  const nameEl=document.getElementById('f-name');if(nameEl)it.name=nameEl.value.trim();
+  if(it.type==='email'){
+    it.subjects=[...document.querySelectorAll('.subj-input')].map(i=>i.value.trim()).filter(Boolean);
+    if(!it.subjects.length)it.subjects=[''];
+    it.preheader=document.getElementById('f-pre').value;
+    it.body=document.getElementById('f-body').value;
+  }else if(it.type==='news'){
+    it.headline=document.getElementById('f-head').value;
+    it.body=document.getElementById('f-body').value;
+  }else if(it.type==='discord'){
+    it.body=document.getElementById('f-body').value;
+  }else if(it.type==='other'){
+    it.note=document.getElementById('f-note').value;
+  }
+  delete it._new;state.editingItemId=null;save();renderCalendar();renderDrawer();showToast('Saved');
+}
+
+/* ---------- calendar clicks ---------- */
+monthsEl.addEventListener('click',e=>{
+  const cell=e.target.closest('.cell');if(!cell||cell.classList.contains('empty'))return;
+  const key=cell.dataset.key;if(!key)return;
+  if(cell.classList.contains('has')){lastFocus=cell;openDrawer(key);}
+  else if(state.editMode){lastFocus=cell;createEventAt(key);}
+});
+monthsEl.addEventListener('keydown',e=>{
+  if((e.key==='Enter'||e.key===' ')){
+    const cell=e.target.closest('.cell');if(!cell)return;
+    const key=cell.dataset.key;if(!key)return;
+    if(cell.classList.contains('has')){e.preventDefault();lastFocus=cell;openDrawer(key);}
+    else if(state.editMode){e.preventDefault();lastFocus=cell;createEventAt(key);}
+  }
+});
+function createEventAt(key){
+  if(!state.data.days[key]) state.data.days[key]={label:'',items:[]};
+  openDrawer(key);
+  setTimeout(()=>{const l=document.getElementById('evLabel');if(l)l.focus();},120);
+}
+
+/* templates */
+document.getElementById('tmplBtn').addEventListener('click',()=>{lastFocus=document.getElementById('tmplBtn');openDrawer('__tmpl__');});
+
+/* ---------- legend filter ---------- */
+document.querySelectorAll('.chip[data-ch]').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    const ch=chip.dataset.ch;
+    if(state.activeFilter.has(ch)){state.activeFilter.delete(ch);chip.classList.remove('active');}
+    else{state.activeFilter.add(ch);chip.classList.add('active');}
+    applyFilter();
+  });
+});
+function applyFilter(){
+  document.querySelectorAll('.cell.has').forEach(cell=>{
+    if(state.activeFilter.size===0){cell.classList.remove('filtered');return;}
+    const chs=(cell.dataset.ch||'').split(' ');
+    cell.classList.toggle('filtered',![...state.activeFilter].some(a=>chs.includes(a)));
+  });
+}
+
+/* ---------- edit mode toggle ---------- */
+const editToggle=document.getElementById('editToggle');
+editToggle.addEventListener('click',()=>{
+  state.editMode=!state.editMode;
+  if(state.editMode&&!editorName()){const n=prompt('Your name (shown to teammates on your edits):');if(n){localStorage.setItem('kickoff_editor',n.trim());const ei=document.getElementById('editorInput');if(ei)ei.value=n.trim();}}
+  document.body.classList.toggle('editing',state.editMode);
+  editToggle.classList.toggle('on',state.editMode);
+  editToggle.textContent=state.editMode?'✓ Done editing':'✎ Edit mode';
+  if(drawer.classList.contains('open')){state.editingItemId=null;renderDrawer();}
+  if(!state.editMode&&pendingRemote){const d=pendingRemote;pendingRemote=null;applyRemote(d);}
+});
+
+/* add event via toolbar date */
+const newDate=document.getElementById('newDate');
+newDate.value=todayKey;
+document.getElementById('newEventBtn').addEventListener('click',()=>{
+  const key=newDate.value;if(!key)return;lastFocus=document.getElementById('newEventBtn');createEventAt(key);
+});
+const editorInput=document.getElementById('editorInput');
+if(editorInput){editorInput.value=editorName();editorInput.addEventListener('change',()=>localStorage.setItem('kickoff_editor',editorInput.value.trim()));}
+
+/* ---------- export / import / reset ---------- */
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(state.data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='kickoff-comms-'+todayKey+'.json';a.click();URL.revokeObjectURL(a.href);showToast('Exported JSON');
+});
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change',e=>{
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d||!d.days) throw new Error('bad');
+      if(!d.templates) d.templates=clone(SEED.templates);
+      ensureIds(d);state.data=d;save();renderCalendar();showToast('Imported');
+      if(drawer.classList.contains('open'))closeDrawer();
+    }catch(err){alert('That file could not be read as a valid comms calendar export.');}
+    e.target.value='';
+  };
+  r.readAsText(file);
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(confirm('Reset to the original built-in copy? Any changes you made in this browser will be lost. Export first if you want a backup.')){
+    state.data=clone(SEED);ensureIds(state.data);save();renderCalendar();
+    if(drawer.classList.contains('open'))closeDrawer();showToast('Reset to default');
+  }
+});
+
+/* ---------- init ---------- */
+init();
+</script>
+</body>
+</html>
