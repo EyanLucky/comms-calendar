@@ -150,6 +150,16 @@
   .note{font-size:13.5px;color:var(--muted);padding:11px 13px;background:rgba(43,229,107,.06);border:1px solid rgba(43,229,107,.2);border-radius:10px}
   .note strong{color:var(--green)}
   .preview{font-size:12.5px;color:var(--muted);margin-top:9px;line-height:1.5;max-height:46px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 60%,transparent)}
+  .assets{display:flex;flex-wrap:wrap;gap:10px}
+  .asset{display:flex;flex-direction:column;gap:6px;width:122px;text-decoration:none;color:var(--muted);border:1px solid var(--panel-line);border-radius:10px;padding:8px;background:rgba(0,0,0,.28);transition:border-color .15s,transform .15s}
+  .asset:hover{border-color:var(--cyan);transform:translateY(-2px);color:var(--ink)}
+  .asset img{width:100%;height:74px;object-fit:cover;border-radius:6px;display:block;background:rgba(255,255,255,.05)}
+  .asset.noimg img{display:none}
+  .asset.noimg::before{content:'🔗 link';display:flex;align-items:center;justify-content:center;height:74px;border-radius:6px;background:rgba(154,123,255,.12);color:var(--purple);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.05em}
+  .asset-cap{font-size:11px;line-height:1.3;word-break:break-word}
+  .img-row{display:flex;gap:7px;margin-bottom:7px;flex-wrap:wrap;align-items:flex-start}
+  .img-row .img-url{flex:2;min-width:160px}
+  .img-row .img-cap{flex:1;min-width:120px}
 
   /* edit forms */
   .ed-event{background:rgba(154,123,255,.06);border:1px solid rgba(154,123,255,.22);border-radius:13px;padding:14px 15px;margin-bottom:18px}
@@ -444,6 +454,22 @@ async function init(){
 
 /* ---------- helpers ---------- */
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return esc(s).replace(/"/g,'&quot;');}
+function renderAssetsView(it){
+  if(!it.images||!it.images.length)return '';
+  const chips=it.images.map(im=>{
+    const u=escAttr(im.url),cap=esc(im.caption||'Open link');
+    return '<a class="asset" href="'+u+'" target="_blank" rel="noopener"><img src="'+u+'" alt="" loading="lazy" onerror="this.closest(\'.asset\').classList.add(\'noimg\')"><span class="asset-cap">'+cap+'</span></a>';
+  }).join('');
+  return '<div class="field"><div class="field-label">Assets / images to use</div><div class="assets">'+chips+'</div></div>';
+}
+function imgRow(url,cap){
+  return '<div class="img-row"><input class="ed-in img-url" placeholder="Image URL (direct .png/.jpg, or a share link)" value="'+escAttr(url||'')+'"><input class="ed-in img-cap" placeholder="When / where to use (e.g. Launch hero 16:9)" value="'+escAttr(cap||'')+'"><button class="mini del" data-action="del-image">✕</button></div>';
+}
+function renderImagesEdit(it){
+  const rows=(it.images&&it.images.length?it.images:[]).map(im=>imgRow(im.url,im.caption)).join('');
+  return '<div class="ed-f" style="margin-top:11px"><span class="ed-lab">Images / asset references</span><div id="imgWrap">'+rows+'</div><button class="mini" data-action="add-image" style="margin-top:2px">+ Add image</button></div>';
+}
 function fmtNote(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');}
 const TODAY=new Date();
 function fmtKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
@@ -520,6 +546,7 @@ function renderItemView(it){
   }else if(it.type==='other'){
     inner+='<div class="field"><div class="note">'+fmtNote(it.note)+'</div></div>';
   }
+  inner+=renderAssetsView(it);
   const editBtns=state.editMode?'<span class="item-actions"><button class="mini" data-action="edit-item" data-id="'+it.id+'">Edit</button><button class="mini del" data-action="del-item" data-id="'+it.id+'">Delete</button></span>':'';
   return '<div class="card"><div class="card-top"><span class="badge '+it.type+'">'+ICONS[it.type]+' '+name+'</span><span class="card-name">'+esc(it.name||'')+'</span>'+editBtns+'</div><div class="card-inner">'+inner+'</div></div>';
 }
@@ -544,6 +571,7 @@ function renderItemEdit(it){
   }else if(it.type==='other'){
     fields+='<div class="ed-f"><span class="ed-lab">Note (use **bold** for emphasis)</span><textarea class="ed-ta" id="f-note">'+esc(it.note||'')+'</textarea></div>';
   }
+  fields+=renderImagesEdit(it);
   return '<div class="card"><div class="card-top"><span class="badge '+it.type+'">'+ICONS[it.type]+' '+CH_NAME[it.type]+'</span></div><div class="card-inner">'+fields+
     '<div class="btn-row"><button class="btn save" data-action="save-item" data-id="'+it.id+'">Save</button><button class="btn ghost" data-action="cancel-item" data-id="'+it.id+'">Cancel</button></div></div></div>';
 }
@@ -553,6 +581,7 @@ function renderItemCompact(it){
   else if(it.type==='news') prev=(it.headline||'')+' · '+(it.body||'').slice(0,90);
   else if(it.type==='discord') prev=(it.body||'').slice(0,110);
   else prev=(it.note||'').replace(/\*\*/g,'').slice(0,110);
+  if(it.images&&it.images.length) prev+='   📎 '+it.images.length+' image'+(it.images.length>1?'s':'');
   return '<div class="card"><div class="card-top"><span class="badge '+it.type+'">'+ICONS[it.type]+' '+CH_NAME[it.type]+'</span><span class="card-name">'+esc(it.name||'')+'</span>'+
     '<span class="item-actions"><button class="mini" data-action="edit-item" data-id="'+it.id+'">Edit</button><button class="mini del" data-action="del-item" data-id="'+it.id+'">Delete</button></span></div>'+
     '<div class="card-inner"><div class="preview">'+esc(prev)+'</div></div></div>';
@@ -658,6 +687,13 @@ dBody.addEventListener('click',e=>{
     wrap.appendChild(div);div.querySelector('input').focus();
   }
   else if(action==='del-subj'){btn.closest('.subj-edit').remove();}
+  else if(action==='add-image'){
+    const wrap=document.getElementById('imgWrap');
+    const div=document.createElement('div');div.className='img-row';
+    div.innerHTML='<input class="ed-in img-url" placeholder="Image URL (direct .png/.jpg, or a share link)"><input class="ed-in img-cap" placeholder="When / where to use (e.g. Launch hero 16:9)"><button class="mini del" data-action="del-image">✕</button>';
+    wrap.appendChild(div);div.querySelector('.img-url').focus();
+  }
+  else if(action==='del-image'){btn.closest('.img-row').remove();}
   else if(action==='add-copy'){
     const type=btn.dataset.type;
     const it={id:genId(),type,_new:true};
@@ -689,6 +725,8 @@ function saveItem(id){
   }else if(it.type==='other'){
     it.note=document.getElementById('f-note').value;
   }
+  const imgs=[...document.querySelectorAll('.img-row')].map(r=>({url:r.querySelector('.img-url').value.trim(),caption:r.querySelector('.img-cap').value.trim()})).filter(x=>x.url);
+  it.images=imgs.length?imgs:undefined;
   delete it._new;state.editingItemId=null;save();renderCalendar();renderDrawer();showToast('Saved');
 }
 
